@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion'; // Import motion and AnimatePresence
 import styles from "../styles/Home.module.css";
 import Head from 'next/head';
+import Link from 'next/link';
 
 const Index = () => {
   const [showDialog, setShowDialog] = useState(false);
@@ -75,43 +77,58 @@ const Index = () => {
       <main>
         <div className={styles.grid}></div>
         <div className={styles.top}>
-          <button className={styles.signin}>Sign in</button>
+          <Link href="/signup"><button className={styles.signin}>Sign in</button></Link>
           <h1>D<i>O</i>OP</h1>
           <p><small>a todo app</small></p>
           <div className={styles.main}>
             <button className={styles.tsk} onClick={handleAddTask}>Add task</button>
 
             <div className={styles.tasks}>
-              {tasks.map(task => (
-                <div key={task.id} className={styles.task}>
-                  <span>{task.name}</span>
-                  <span>{task.progress}%</span>
-                  <button className={styles.editButton} onClick={() => handleEditTask(task.id)}>Edit</button>
-                  <button className={styles.deleteButton} onClick={() => handleDeleteTask(task.id)}>Delete</button>
-                </div>
-              ))}
+              <AnimatePresence>
+                {tasks.map(task => (
+                  <motion.div
+                    key={task.id}
+                    className={styles.task}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <span>{task.name}</span>
+                    <span>{task.progress}%</span>
+                    <button className={styles.editButton} onClick={() => handleEditTask(task.id)}>Edit</button>
+                    <button className={styles.deleteButton} onClick={() => handleDeleteTask(task.id)}>Delete</button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </div>
 
-          {(showDialog || editDialog) &&
-            <div className={styles.dialog}>
-              <div className={styles.dialogcont}>
-                <div>
-                  <label htmlFor="taskName">Task Name:</label>
-                  <input type="text" id="taskName" value={taskName} onChange={(e) => handleChange(e, 'name')} />
+          <AnimatePresence>
+            {(showDialog || editDialog) && (
+              <motion.div
+                className={styles.dialog}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className={styles.dialogcont}>
+                  <div>
+                    <label htmlFor="taskName">Task Name:</label>
+                    <input type="text" id="taskName" value={taskName} onChange={(e) => handleChange(e, 'name')} />
+                  </div>
+                  <div>
+                    <label htmlFor="taskProgress">Task Progress:</label>
+                    <input type="range" id="taskProgress" min="0" max="100" value={taskProgress} onChange={(e) => handleChange(e, 'progress')} />
+                    <span>{taskProgress}%</span>
+                  </div>
+                  <div className={styles.buttonGroup}>
+                    <button onClick={handleConfirm} className={styles.addTaskButton}>{editDialog ? 'Edit Task' : 'Add Task'}</button>
+                    <button onClick={handleCloseDialog} className={styles.closeButton}>Close</button>
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="taskProgress">Task Progress:</label>
-                  <input type="range" id="taskProgress" min="0" max="100" value={taskProgress} onChange={(e) => handleChange(e, 'progress')} />
-                  <span>{taskProgress}%</span>
-                </div>
-                <div className={styles.buttonGroup}>
-                  <button onClick={handleConfirm} className={styles.addTaskButton}>{editDialog ? 'Edit Task' : 'Add Task'}</button>
-                  <button onClick={handleCloseDialog} className={styles.closeButton}>Close</button>
-                </div>
-              </div>
-            </div>
-          }
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
     </>

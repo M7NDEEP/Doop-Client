@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'; // Import motion and AnimatePresence
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from "../styles/Home.module.css";
 import Head from 'next/head';
 import Link from 'next/link';
+import axios from 'axios';
 
 const Index = () => {
   const [showDialog, setShowDialog] = useState(false);
@@ -11,6 +12,25 @@ const Index = () => {
   const [taskProgress, setTaskProgress] = useState(0);
   const [tasks, setTasks] = useState([]);
   const [editTaskId, setEditTaskId] = useState(null);
+  const [userEmail, setUserEmail] = useState(''); // Add a state for user email
+
+  useEffect(() => {
+    // Fetch user email from localStorage or cookie
+    const storedUserEmail = localStorage.getItem('userEmail') || '';
+    setUserEmail(storedUserEmail);
+
+    // Fetch tasks for the user
+    fetchTasks(storedUserEmail);
+  }, []); // Empty dependency array to run only once on component mount
+
+  const fetchTasks = async (email) => {
+    try {
+      const response = await axios.get(`/api/todos?userEmail=${email}`);
+      setTasks(response.data);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
 
   const handleAddTask = () => {
     setShowDialog(true);
@@ -40,35 +60,36 @@ const Index = () => {
     setTaskProgress(0);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const newTask = {
-      id: tasks.length + 1,
-      name: taskName,
-      progress: taskProgress
+      user_email: userEmail,
+      title: taskName,
+      progress: taskProgress,
     };
-    if (editDialog) {
-      const updatedTasks = tasks.map(task => {
-        if (task.id === editTaskId) {
-          return {
-            ...task,
-            name: taskName,
-            progress: taskProgress
-          };
-        }
-        return task;
-      });
-      setTasks(updatedTasks);
-    } else {
-      setTasks([...tasks, newTask]);
+  
+    try {
+      if (editDialog) {
+        await axios.put(`/api/todos?id=${editTaskId}`, newTask);
+      } else {
+        await axios.post('/api/todos', newTask);
+      }
+      fetchTasks(userEmail);
+    } catch (error) {
+      console.error('Error updating tasks:', error);
     }
+  
     handleCloseDialog();
   };
-
-  const handleDeleteTask = (taskId) => {
-    const updatedTasks = tasks.filter(task => task.id !== taskId);
-    setTasks(updatedTasks);
+  
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await axios.delete(`/api/todos?id=${taskId}`);
+      fetchTasks(userEmail);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
-
+  
   return (
     <>
       <Head>

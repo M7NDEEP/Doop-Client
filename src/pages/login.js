@@ -2,13 +2,45 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { RiEyeFill, RiEyeOffFill } from 'react-icons/ri'; // Importing icons from React Icons
+import { RiEyeFill, RiEyeOffFill } from 'react-icons/ri';
+import axios from 'axios';
+import { useRouter } from 'next/router';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const router = useRouter();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post('/api/auth/login', { email, password });
+      // Handle successful login
+      console.log(response.data);
+      // Store user email and token in localStorage or cookie
+      localStorage.setItem('userEmail', response.data.email);
+      localStorage.setItem('token', response.data.token);
+      // Redirect to the home page or dashboard
+      router.push('/');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      // Handle login error
+      alert('Failed to log in');
+    }
   };
 
   return (
@@ -27,16 +59,14 @@ const Login = () => {
             Log In
           </motion.h1>
           <motion.form
+            onSubmit={handleLogin}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
           >
             <div className="mb-6">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="email"
-              >
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
                 Email
               </label>
               <input
@@ -44,13 +74,12 @@ const Login = () => {
                 id="email"
                 type="email"
                 placeholder="Email"
+                value={email}
+                onChange={handleEmailChange}
               />
             </div>
             <div className="mb-6">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="password"
-              >
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
                 Password
               </label>
               <div className="relative">
@@ -59,6 +88,8 @@ const Login = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
+                  value={password}
+                  onChange={handlePasswordChange}
                 />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -80,7 +111,7 @@ const Login = () => {
             >
               <button
                 className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="button"
+                type="submit"
               >
                 Log In
               </button>

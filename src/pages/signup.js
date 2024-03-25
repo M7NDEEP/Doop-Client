@@ -2,11 +2,17 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { RiEyeFill, RiEyeOffFill } from 'react-icons/ri'; // Importing icons from React Icons
+import { RiEyeFill, RiEyeOffFill } from 'react-icons/ri';
+import axios from 'axios';
+import { useRouter } from 'next/router';
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const router = useRouter();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -14,6 +20,38 @@ const Signup = () => {
 
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    setConfirmPassword(e.target.value);
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+  
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+  
+    try {
+      const response = await axios.post('/api/signup', { email, password });
+      console.log(response.data);
+      localStorage.setItem('userEmail', response.data.email);
+      localStorage.setItem('token', response.data.token);
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing up:', error);
+      alert('Failed to sign up');
+    }
   };
 
   return (
@@ -36,6 +74,7 @@ const Signup = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+            onSubmit={handleSignup}
           >
             <div className="mb-4">
               <label
@@ -49,6 +88,8 @@ const Signup = () => {
                 id="email"
                 type="email"
                 placeholder="Email"
+                value={email}
+                onChange={handleEmailChange}
               />
             </div>
             <div className="mb-6">
@@ -64,6 +105,8 @@ const Signup = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
+                  value={password}
+                  onChange={handlePasswordChange}
                 />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -71,7 +114,7 @@ const Signup = () => {
                   type="button"
                   onClick={togglePasswordVisibility}
                   className="absolute right-0 top-0 mt-3 mr-4 text-black"
-                  style={{filter:'invert()'}}
+                  style={{ filter: 'invert()' }}
                 >
                   {showPassword ? <RiEyeOffFill /> : <RiEyeFill />}
                 </motion.button>
@@ -90,6 +133,8 @@ const Signup = () => {
                   id="confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={handleConfirmPasswordChange}
                 />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -97,7 +142,7 @@ const Signup = () => {
                   type="button"
                   onClick={toggleConfirmPasswordVisibility}
                   className="absolute right-0 top-0 mt-3 mr-4 text-black"
-                  style={{filter:'invert()'}}
+                  style={{ filter: 'invert()' }}
                 >
                   {showConfirmPassword ? <RiEyeOffFill /> : <RiEyeFill />}
                 </motion.button>
@@ -111,7 +156,7 @@ const Signup = () => {
             >
               <button
                 className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="button"
+                type="submit"
               >
                 Sign Up
               </button>
